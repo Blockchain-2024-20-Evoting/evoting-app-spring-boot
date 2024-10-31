@@ -4,6 +4,7 @@ import com.crymuzz.evotingapispring.entity.ElectionEntity;
 import com.crymuzz.evotingapispring.entity.dto.ElectionRegisterDTO;
 import com.crymuzz.evotingapispring.entity.dto.ElectionResponseDTO;
 import com.crymuzz.evotingapispring.exception.BadRequestException;
+import com.crymuzz.evotingapispring.exception.ResourceNotFoundException;
 import com.crymuzz.evotingapispring.repository.ElectionRepository;
 import com.crymuzz.evotingapispring.service.IElectionService;
 import com.crymuzz.evotingapispring.mapper.ElectionMapper;
@@ -12,6 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -59,4 +62,23 @@ public class ElectionServiceImpl implements IElectionService {
             electionRepository.deleteById(id);
         throw new IllegalArgumentException("No existe la elección con ID");
     }
+
+    @Override
+    @Transactional
+    public void updateAllStatusElection() {
+        List<ElectionEntity> elecciones = electionRepository.findAll();
+        List<ElectionEntity> updatedElections = elecciones.parallelStream()
+                .filter(election -> election.getState() != calcularNuevoEstado(election.getStartDate(), election.getEndDate()))
+                .peek(election -> election.setState(calcularNuevoEstado(election.getStartDate(), election.getEndDate())))
+                .toList();
+        if (!updatedElections.isEmpty()) {
+            electionRepository.saveAll(updatedElections);
+        }
+    }
+
+    private boolean calcularNuevoEstado(LocalDate startDate, LocalDate endDate) {
+        LocalDate fechaActual = LocalDate.now(ZoneId.of("America/Lima"));
+        return !fechaActual.isBefore(startDate) && fechaActual.isBefore(endDate);
+    }
+
 }

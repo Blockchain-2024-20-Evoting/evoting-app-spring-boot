@@ -13,12 +13,10 @@ import lombok.Setter;
 @NoArgsConstructor
 @Table(name = "parties")
 public class PartyEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
     private String description;
     private String img;
-
 }

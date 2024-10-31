@@ -6,23 +6,34 @@ import com.crymuzz.evotingapispring.entity.dto.CandidateResponseDTO;
 import com.crymuzz.evotingapispring.service.ICandidateService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
 
 @RestController
-@RequestMapping("/candidate")
+@RequestMapping("/v1/candidate")
 @RequiredArgsConstructor
 public class CandidateController {
 
     private final ICandidateService candidateService;
 
     @PostMapping
-    public ResponseEntity<CandidateResponseDTO> registerCandidate(@RequestBody @Valid CandidateRegisterDTO candidateRegisterDTO) {
+    public ResponseEntity<CandidateResponseDTO> registerCandidate(@Valid @ModelAttribute CandidateRegisterDTO candidateRegisterDTO) {
         CandidateResponseDTO response = candidateService.saveCandidate(candidateRegisterDTO);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/img/{id}")
+    public ResponseEntity<Resource> getCandidateImg(@PathVariable Long id) throws IOException {
+        Resource response = candidateService.findImgCandidateById(id);
+        String contentType = Files.probeContentType(response.getFile().toPath());
+        return ResponseEntity.ok().header(HttpHeaders.CONTENT_TYPE, contentType).body(response);
     }
 
     @GetMapping("/{id}")
