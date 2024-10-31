@@ -15,6 +15,7 @@ import com.crymuzz.evotingapispring.repository.PartyRepository;
 import com.crymuzz.evotingapispring.service.ICandidateService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,10 +31,14 @@ public class CandidateServiceImpl implements ICandidateService {
     private final PartyRepository partyRepository;
     private final ElectionRepository electionRepository;
     private final CandidateMapper candidateMapper;
+    private final StorageServiceImpl storageService;
 
     @Override
     @Transactional
     public CandidateResponseDTO saveCandidate(CandidateRegisterDTO candidateRegisterDTO) {
+        String imgPath = storageService.store(candidateRegisterDTO.getImg());
+        if(imgPath.isBlank() || imgPath.isEmpty())
+            throw new IllegalArgumentException("Recurso no válido");
         if (candidateRepository.existsByFirstNameAndLastName(candidateRegisterDTO.getFirstName(), candidateRegisterDTO.getLastName()))
             throw new BadRequestException("El candidato ya existe");
 
@@ -43,8 +48,19 @@ public class CandidateServiceImpl implements ICandidateService {
                 .orElseThrow(() -> new ResourceNotFoundException("La elección especificada no existe"));
 
         CandidateEntity candidateEntity = candidateMapper.toCandidateEntity(candidateRegisterDTO, party, election);
+        candidateEntity.setImage(imgPath);
         CandidateEntity savedCandidate = candidateRepository.save(candidateEntity);
         return candidateMapper.toCandidateResponseDTO(savedCandidate);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Resource findImgCandidateById(Long id) {
+        CandidateEntity candidateEntity = candidateRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("El candidato no existe"));
+        String imgPath = candidateEntity.getImage();
+        if (imgPath.isEmpty() || imgPath.isBlank())
+            throw new IllegalArgumentException("No se ha encontrado la imagen");
+        return storageService.loadSource(imgPath);
     }
 
     @Override

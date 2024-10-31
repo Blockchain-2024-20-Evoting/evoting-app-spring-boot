@@ -20,7 +20,6 @@ public class CandidateMapper {
         CandidateEntity candidate = new CandidateEntity();
         candidate.setFirstName(candidateRegisterDTO.getFirstName());
         candidate.setLastName(candidateRegisterDTO.getLastName());
-        candidate.setImage(candidateRegisterDTO.getImage());
         candidate.setParty(party);
         candidate.setElection(election);
         return candidate;
