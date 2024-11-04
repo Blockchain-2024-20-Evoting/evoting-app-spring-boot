@@ -37,6 +37,15 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(err, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(ErrorResourceImageException.class)
+    public ResponseEntity<CustomErrorResponse> handlerModelErrorResourceImageException(ErrorResourceImageException ex,
+                                                                                       WebRequest request) {
+        CustomErrorResponse err = new CustomErrorResponse(LocalDateTime.now(),
+                ex.getMessage(),
+                request.getDescription(false));
+        return new ResponseEntity<>(err, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<CustomErrorResponse> handleAllExceptions(Exception ex, WebRequest request) {
         CustomErrorResponse err = new CustomErrorResponse(LocalDateTime.now(),

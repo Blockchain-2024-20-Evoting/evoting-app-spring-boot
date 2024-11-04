@@ -40,7 +40,6 @@ public class UserServiceImpl implements IUserService {
     private final TokenProvider tokenProvider;
 
     @Override
-    @Transactional(readOnly = true)
     public UserProfileDTO saveStudent(UserRegisterDTO student) {
         return registerUserWithRole(student);
     }
