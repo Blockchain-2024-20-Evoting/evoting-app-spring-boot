@@ -6,6 +6,8 @@ import com.crymuzz.evotingapispring.entity.StudentEntity;
 import com.crymuzz.evotingapispring.entity.VoteEntity;
 import com.crymuzz.evotingapispring.entity.dto.VoteRegisterDTO;
 import com.crymuzz.evotingapispring.entity.dto.VoteResponseDTO;
+import com.crymuzz.evotingapispring.entity.enums.StateElectionEnum;
+import com.crymuzz.evotingapispring.exception.ElectionNotFoundException;
 import com.crymuzz.evotingapispring.exception.ExcessiveVotesException;
 import com.crymuzz.evotingapispring.exception.ResourceNotFoundException;
 import com.crymuzz.evotingapispring.repository.CandidateRepository;
@@ -32,7 +34,6 @@ public class VoteServiceImpl implements IVoteService {
     @Override
     @Transactional
     public VoteResponseDTO vote(VoteRegisterDTO voteRegisterDTO) {
-        // Validar existencia de estudiante y candidato
         Long candidateId = voteRegisterDTO.getCandidateId();
         Long studentId = voteRegisterDTO.getStudentId();
 
@@ -45,25 +46,30 @@ public class VoteServiceImpl implements IVoteService {
         ElectionEntity election = candidate.getElection();
 
         // Validar que el estudiante no haya votado en esta elección
-        boolean hasVoted = voteRepository.existsByStudentEntityAndCandidateEntityElection(student, election);
-        if (hasVoted) {
+        if (voteRepository.existsByStudentEntityAndCandidateEntityElection(student, election)) {
             throw new ExcessiveVotesException("El estudiante ya ha votado en esta elección");
         }
 
         // Validar que la elección esté activa
-        if (!election.getState()) {
-            throw new IllegalStateException("La elección no está activa actualmente");
+        if (election.getState() != StateElectionEnum.ACTIVE) {
+            throw new ElectionNotFoundException("La elección no está activa");
         }
 
         // Registrar el voto
         VoteEntity vote = new VoteEntity();
         vote.setStudentEntity(student);
         vote.setCandidateEntity(candidate);
-        VoteEntity voteEntity = voteRepository.save(vote);
+        voteRepository.save(vote);
+
+        return createVoteResponse(vote);
+    }
+
+    private VoteResponseDTO createVoteResponse(VoteEntity voteEntity) {
         VoteResponseDTO voteResponseDTO = new VoteResponseDTO();
         voteResponseDTO.setVoteTime(LocalDateTime.now());
-        voteResponseDTO.setMessage("El estudiante" + voteEntity.getStudentEntity().getFirstName()+" ha votado por "+voteEntity.getCandidateEntity().getFirstName()+" en el estudiante");
-        // Crear y devolver respuesta del voto
+        voteResponseDTO.setMessage("El estudiante " + voteEntity.getStudentEntity().getFirstName() +
+                " ha votado por " + voteEntity.getCandidateEntity().getFirstName() +
+                " en la elección");
         return voteResponseDTO;
     }
 

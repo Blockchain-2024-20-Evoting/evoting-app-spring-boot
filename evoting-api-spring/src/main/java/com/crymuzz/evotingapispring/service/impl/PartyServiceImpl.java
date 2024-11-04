@@ -4,6 +4,8 @@ import com.crymuzz.evotingapispring.entity.PartyEntity;
 import com.crymuzz.evotingapispring.entity.dto.PartyRegisterDTO;
 import com.crymuzz.evotingapispring.entity.dto.PartyResponseDTO;
 import com.crymuzz.evotingapispring.exception.BadRequestException;
+import com.crymuzz.evotingapispring.exception.ErrorResourceImageException;
+import com.crymuzz.evotingapispring.exception.ResourceNotFoundException;
 import com.crymuzz.evotingapispring.repository.PartyRepository;
 import com.crymuzz.evotingapispring.service.IPartyService;
 import com.crymuzz.evotingapispring.mapper.PartyMapper;
@@ -29,10 +31,10 @@ public class PartyServiceImpl implements IPartyService {
     public PartyResponseDTO saveParty(PartyRegisterDTO partyRegisterDTO) {
         String imgPath = storageService.store(partyRegisterDTO.getImg());
         if (imgPath.isEmpty() || imgPath.isBlank())
-            throw new IllegalArgumentException("Recurso no válido");
+            throw new ErrorResourceImageException("Error al guardar el recurso");
         boolean existParty = partyRepository.existsByName(partyRegisterDTO.getName());
         if (existParty)
-            throw new IllegalArgumentException("El partido ya existe");
+            throw new BadRequestException("El recurso de partido ya existe");
         PartyEntity partyEntity = partyMapper.toPartyEntity(partyRegisterDTO);
         partyEntity.setImg(imgPath);
         partyEntity = partyRepository.save(partyEntity);
@@ -55,20 +57,20 @@ public class PartyServiceImpl implements IPartyService {
     @Override
     @Transactional(readOnly = true)
     public Resource findImgPartyById(Long id) {
-        PartyEntity partyEntity = partyRepository.findById(id).orElseThrow(() -> new BadRequestException("No se " +
-                "encontró el identificador"));
+        PartyEntity partyEntity = partyRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("No " +
+                "se encontró el partido"));
         String imgPath = partyEntity.getImg();
         if (imgPath.isEmpty() || imgPath.isBlank())
-            throw new IllegalArgumentException("No se ha encontrado la imagen");
+            throw new ErrorResourceImageException("Error al recuperar la imagen del partido");
         return storageService.loadSource(imgPath);
     }
 
     @Override
     @Transactional
     public void delete(Long id) {
-        if (partyRepository.existsById(id))
-            this.partyRepository.deleteById(id);
-        throw new IllegalArgumentException("El partido no existe");
+        if (!partyRepository.existsById(id))
+            throw new IllegalArgumentException("El partido a eliminar no existe");
+        this.partyRepository.deleteById(id);
     }
 
 }

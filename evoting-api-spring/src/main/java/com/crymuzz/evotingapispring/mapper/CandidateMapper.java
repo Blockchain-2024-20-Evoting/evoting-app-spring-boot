@@ -43,4 +43,5 @@ public class CandidateMapper {
         return candidateProfileDTO;
     }
 
+
 }

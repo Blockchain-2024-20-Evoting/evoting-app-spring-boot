@@ -1,5 +1,6 @@
 package com.crymuzz.evotingapispring.entity.dto;
 
+import com.crymuzz.evotingapispring.entity.enums.StateElectionEnum;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -10,5 +11,5 @@ public class ElectionResponseDTO {
     private String name;
     private LocalDate startDate;
     private LocalDate endDate;
-    private Boolean state;
+    private StateElectionEnum state;
 }
