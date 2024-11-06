@@ -19,8 +19,11 @@ public class ElectionEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(nullable = false, unique = true, length = 50)
     private String name;
+    @Column(nullable = false)
     private LocalDate startDate;
+    @Column(nullable = false)
     private LocalDate endDate;
     @Enumerated(EnumType.STRING)
     private StateElectionEnum state;
