@@ -86,7 +86,7 @@ public class ResultServiceImpl implements IResultService {
                     double percentage = (totalVotes > 0) ? (voteCount * 100.0) / totalVotes : 0;
 
                     return ResultResponseDTO.builder()
-                            .firsName(candidate.getFirstName())
+                            .firstName(candidate.getFirstName())
                             .lastName(candidate.getLastName())
                             .nameElection(candidate.getElection().getName())
                             .partyElection(candidate.getParty().getName())

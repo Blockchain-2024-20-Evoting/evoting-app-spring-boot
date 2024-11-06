@@ -53,7 +53,8 @@ public class ElectionServiceImpl implements IElectionService {
     @Transactional(readOnly = true)
     public ElectionResponseDTO findById(Long id) {
         Optional<ElectionEntity> response = this.electionRepository.findById(id);
-        return response.map(electionMapper::toElectionResponse).orElseThrow(IllegalArgumentException::new);
+        return response.map(electionMapper::toElectionResponse).orElseThrow(() -> new ResourceNotFoundException("La " +
+                "elección no fue encontrada"));
     }
 
     @Override

@@ -22,6 +22,7 @@ public class ResultEntity {
     @JoinColumn(name = "candidate_id", nullable = false)
     private CandidateEntity candidate;
 
+    @Column(length = 100)
     private Long voteCount;
 
 }

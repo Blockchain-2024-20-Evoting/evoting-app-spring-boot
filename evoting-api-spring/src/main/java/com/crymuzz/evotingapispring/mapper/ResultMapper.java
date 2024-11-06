@@ -19,7 +19,7 @@ public class ResultMapper {
     public ResultResponseDTO toResultResponseDTO(ResultEntity result) {
         CandidateEntity candidateEntity = result.getCandidate();
         return ResultResponseDTO.builder()
-                .firsName(candidateEntity.getFirstName())
+                .firstName(candidateEntity.getFirstName())
                 .lastName(candidateEntity.getLastName())
                 .nameElection(candidateEntity.getElection().getName())
                 .partyElection(candidateEntity.getParty().getName())
@@ -28,18 +28,5 @@ public class ResultMapper {
                 .percentage(0D)
                 .build();
     }
-
-
-//    @Data
-//    public class ResultResponseDTO {
-//        private String firsName;
-//        private String lastName;
-//        private String nameElection;
-//        private String partyElection;
-//        private Long countVotes;
-//        private boolean winner;
-//        private double percentage;
-//    }
-
 
 }
