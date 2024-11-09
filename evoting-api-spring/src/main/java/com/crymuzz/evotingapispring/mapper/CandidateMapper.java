@@ -14,7 +14,6 @@ public class CandidateMapper {
 
     private final ModelMapper modelMapper;
 
-
     public CandidateEntity toCandidateEntity(CandidateRegisterDTO candidateRegisterDTO, PartyEntity party,
                                              ElectionEntity election) {
         CandidateEntity candidate = new CandidateEntity();

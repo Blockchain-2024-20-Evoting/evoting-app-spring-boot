@@ -14,4 +14,5 @@ public interface ICandidateService {
     List<CandidateResponseDTO> findAll();
     CandidateProfileDTO getProfile(Long id);
     void delete(Long id);
+    List<CandidateResponseDTO> findByElectionId(Long id);
 }

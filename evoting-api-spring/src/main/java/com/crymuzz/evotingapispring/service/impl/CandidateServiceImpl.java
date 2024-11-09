@@ -89,4 +89,9 @@ public class CandidateServiceImpl implements ICandidateService {
     public void delete(Long id) {
         this.candidateRepository.deleteById(id);
     }
+
+    @Override
+    public List<CandidateResponseDTO> findByElectionId(Long id) {
+        return this.candidateRepository.findCandidateEntityByElectionId(id).stream().map(candidateMapper::toCandidateResponseDTO).toList();
+    }
 }
