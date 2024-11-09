@@ -113,4 +113,17 @@ public class CandidateController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
+    /**
+     * Lista los candidatos de una elección en especifica
+     *
+     * @param id parametro del indentificador de la eleccion
+     * @return List<CandidateResponseDTO> lista de candidatos
+     */
+
+    @GetMapping("elections/{id}")
+    public ResponseEntity<List<CandidateResponseDTO>> getElections(@PathVariable Long id) {
+        List<CandidateResponseDTO> response = candidateService.findByElectionId(id);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
 }

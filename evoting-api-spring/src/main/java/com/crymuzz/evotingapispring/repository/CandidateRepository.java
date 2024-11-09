@@ -11,5 +11,6 @@ import java.util.List;
 public interface CandidateRepository extends JpaRepository<CandidateEntity, Long> {
     boolean existsByFirstNameAndLastNameAndElection(String firstName, String lastName, ElectionEntity election);
     List<CandidateEntity> findByElection(ElectionEntity election);
+    List<CandidateEntity> findCandidateEntityByElectionId(Long electionID);
 }
 
