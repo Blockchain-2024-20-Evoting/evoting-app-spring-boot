@@ -5,6 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -22,8 +25,14 @@ public class VoteEntity {
     @JoinColumn(name = "student_id", nullable = false)
     private StudentEntity studentEntity;
 
-    @ManyToOne
-    @JoinColumn(name = "candidate_id", nullable = false)
-    private CandidateEntity candidateEntity;
+    @OneToOne
+    @JoinColumn(name = "transaction_id", nullable = false)
+    private TransactionEntity transactionEntity;
+
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+
 
 }

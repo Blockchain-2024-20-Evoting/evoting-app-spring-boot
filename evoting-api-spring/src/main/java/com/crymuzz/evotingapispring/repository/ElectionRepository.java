@@ -6,8 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ElectionRepository extends JpaRepository<ElectionEntity, Long> {
-
     boolean existsByName(String name);
-
-
 }

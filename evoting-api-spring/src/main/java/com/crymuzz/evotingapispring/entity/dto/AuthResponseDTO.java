@@ -11,6 +11,12 @@ public class AuthResponseDTO {
     // Token de acceso JWT del usuario autenticado
     private String token;
 
+    // Identificador único del usuario autenticado
+    private Long id;
+
+    // Identificador en caso sea estudiante
+    private Long studentId;
+
     // Nombre del usuario autenticado
     private String firstName;
 

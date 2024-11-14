@@ -6,7 +6,7 @@ import com.crymuzz.evotingapispring.entity.dto.ResultResponseDTO;
 import java.util.List;
 
 public interface IResultService {
-    void countVotes(ElectionEntity electionEntity);
-    Long getVotesCandidate(Long candidateId);
-    List<ResultResponseDTO> getResultsByElection(Long electionId);
+//    void countVotes(ElectionEntity electionEntity);
+//    Long getVotesCandidate(Long candidateId);
+//    List<ResultResponseDTO> getResultsByElection(Long electionId);
 }

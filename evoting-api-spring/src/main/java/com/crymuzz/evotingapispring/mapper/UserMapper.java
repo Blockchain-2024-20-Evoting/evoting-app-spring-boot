@@ -37,7 +37,9 @@ public class UserMapper {
         AuthResponseDTO authResponseDTO = new AuthResponseDTO();
         authResponseDTO.setToken(token);
         authResponseDTO.setRole(userEntity.getRole().getName().name());
+        authResponseDTO.setId(userEntity.getId());
         if (userEntity.getStudent() != null) {
+            authResponseDTO.setStudentId(userEntity.getStudent().getId());
             authResponseDTO.setFirstName(userEntity.getStudent().getFirstName());
             authResponseDTO.setLastName(userEntity.getStudent().getLastName());
         }
