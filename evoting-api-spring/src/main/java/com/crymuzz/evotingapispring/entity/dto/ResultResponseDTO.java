@@ -1,5 +1,7 @@
 package com.crymuzz.evotingapispring.entity.dto;
 
+import com.crymuzz.evotingapispring.entity.CandidateEntity;
+import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Data;
 
@@ -14,24 +16,19 @@ import lombok.Data;
 @Data
 @Builder
 public class ResultResponseDTO {
-    // Primer nombre del candidato
-    private String firstName;
 
-    // Apellido del candidato
-    private String lastName;
+    private Long id;
 
-    // Nombre de la elección en la que participó el candidato
-    private String nameElection;
+    private CandidateEntity candidateEntity;
 
-    // Nombre del partido al que pertenece el candidato
-    private String partyElection;
-
-    // Número de votos recibidos por el candidato
     private Long countVotes;
 
-    // Indica si el candidato es el ganador de la elección
-    private boolean winner;
+    private double percentages;
 
-    // Porcentaje de votos recibidos por el candidato en la elección
-    private double percentage;
+    private boolean isWinner;
+
+    private String partyName;
+
+    private String electionName;
+
 }

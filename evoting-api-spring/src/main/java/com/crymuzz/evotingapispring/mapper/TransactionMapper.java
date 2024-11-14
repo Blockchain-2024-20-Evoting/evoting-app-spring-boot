@@ -15,17 +15,14 @@ public class TransactionMapper {
     private final ModelMapper modelMapper;
 
     public TransactionEntity toTransactionEntity(TransactionRegisterDTO transactionRegisterDTO) {
-        System.out.println(transactionRegisterDTO);
         return modelMapper.map(transactionRegisterDTO, TransactionEntity.class);
     }
 
     public TransactionRegisterDTO toTransactionRegisterDTO(TransactionReceipt transactionReceipt) {
-        System.out.println(transactionReceipt);
         return modelMapper.map(transactionReceipt, TransactionRegisterDTO.class);
     }
 
     public TransactionResponseDTO toTransactionResponseDTO(TransactionEntity transactionEntity) {
-        System.out.println(transactionEntity);
         return modelMapper.map(transactionEntity, TransactionResponseDTO.class);
     }
 
