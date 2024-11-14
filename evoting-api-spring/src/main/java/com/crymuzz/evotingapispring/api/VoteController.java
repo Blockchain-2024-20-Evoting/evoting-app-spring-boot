@@ -10,6 +10,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.web3j.protocol.exceptions.TransactionException;
+
+import java.io.IOException;
 
 /**
  * Controlador para gestionar operaciones relacionadas los votos
@@ -37,7 +40,7 @@ public class VoteController {
      */
 
     @PostMapping
-    public ResponseEntity<VoteResponseDTO> voteStudent(@RequestBody VoteRegisterDTO voteRegisterDTO) {
+    public ResponseEntity<VoteResponseDTO> voteStudent(@RequestBody VoteRegisterDTO voteRegisterDTO) throws TransactionException, IOException {
         VoteResponseDTO response = voteService.vote(voteRegisterDTO);
         return ResponseEntity.ok(response);
     }

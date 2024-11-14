@@ -1,7 +1,6 @@
 package com.crymuzz.evotingapispring.entity.dto;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -11,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Data
 public class CandidateRegisterDTO {
+
     // Nombre del candidato. No puede estar vacío o en blanco.
     @NotBlank(message = "El campo del nombre del candidato estar nulo o en blanco")
     private String firstName;
@@ -20,14 +20,15 @@ public class CandidateRegisterDTO {
     private String lastName;
 
     // Imagen del candidato. No puede estar vacía.
-    @NotEmpty(message = "El candidato necesita una imagen")
+    @NotNull(message = "El candidato necesita una imagen")
     private MultipartFile img;
 
     // ID del partido al que pertenece el candidato. No puede estar vacío o en blanco.
-    @NotBlank(message = "El campo del partido no puede estar nulo o en blanco")
+    @NotNull(message = "El campo del partido no puede estar nulo o en blanco")
+    @Min(value = 1, message = "Debe ser positivo")
     private Long partyId;
 
     // ID de la elección en la que participa el candidato. No puede estar vacío o en blanco.
-    @NotBlank(message = "El campo de la eleccion no puede estar nulo o en blanco")
+    @NotNull(message = "El campo de la eleccion no puede estar nulo o en blanco")
     private Long electionId;
 }

@@ -1,26 +1,26 @@
 package com.crymuzz.evotingapispring.service.impl;
 
-import com.crymuzz.evotingapispring.entity.CandidateEntity;
-import com.crymuzz.evotingapispring.entity.ElectionEntity;
-import com.crymuzz.evotingapispring.entity.StudentEntity;
-import com.crymuzz.evotingapispring.entity.VoteEntity;
+import com.crymuzz.evotingapispring.entity.*;
+import com.crymuzz.evotingapispring.entity.dto.TransactionRegisterDTO;
+import com.crymuzz.evotingapispring.entity.dto.TransactionResponseDTO;
 import com.crymuzz.evotingapispring.entity.dto.VoteRegisterDTO;
 import com.crymuzz.evotingapispring.entity.dto.VoteResponseDTO;
 import com.crymuzz.evotingapispring.entity.enums.StateElectionEnum;
 import com.crymuzz.evotingapispring.exception.ElectionNotFoundException;
 import com.crymuzz.evotingapispring.exception.ExcessiveVotesException;
 import com.crymuzz.evotingapispring.exception.ResourceNotFoundException;
-import com.crymuzz.evotingapispring.repository.CandidateRepository;
-import com.crymuzz.evotingapispring.repository.ElectionRepository;
-import com.crymuzz.evotingapispring.repository.StudentRepository;
-import com.crymuzz.evotingapispring.repository.VoteRepository;
+import com.crymuzz.evotingapispring.mapper.TransactionMapper;
+import com.crymuzz.evotingapispring.mapper.VoteMapper;
+import com.crymuzz.evotingapispring.repository.*;
+import com.crymuzz.evotingapispring.service.IContractVoteService;
 import com.crymuzz.evotingapispring.service.IVoteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.web3j.protocol.exceptions.TransactionException;
 
-import java.time.LocalDateTime;
-import java.util.List;
+import java.io.IOException;
 
 @Service
 @RequiredArgsConstructor
@@ -29,11 +29,16 @@ public class VoteServiceImpl implements IVoteService {
     private final StudentRepository studentRepository;
     private final VoteRepository voteRepository;
     private final CandidateRepository candidateRepository;
-    private final ElectionRepository electionRepository;
+    private final IContractVoteService contractVoteService;
+    private final TransactionMapper transactionMapper;
+    private final TransactionServiceImpl transactionService;
+    private final VoteMapper voteMapper;
+
 
     @Override
     @Transactional
-    public VoteResponseDTO vote(VoteRegisterDTO voteRegisterDTO) {
+    public VoteResponseDTO vote(VoteRegisterDTO voteRegisterDTO) throws IOException, TransactionException {
+
         Long candidateId = voteRegisterDTO.getCandidateId();
         Long studentId = voteRegisterDTO.getStudentId();
 
@@ -45,40 +50,24 @@ public class VoteServiceImpl implements IVoteService {
 
         ElectionEntity election = candidate.getElection();
 
-        // Validar que el estudiante no haya votado en esta elección
-        if (voteRepository.existsByStudentEntityAndCandidateEntityElection(student, election)) {
-            throw new ExcessiveVotesException("El estudiante ya ha votado en esta elección");
-        }
-
         // Validar que la elección esté activa
         if (election.getState() != StateElectionEnum.ACTIVE) {
             throw new ElectionNotFoundException("La elección no está activa");
         }
 
-        // Registrar el voto
-        VoteEntity vote = new VoteEntity();
-        vote.setStudentEntity(student);
-        vote.setCandidateEntity(candidate);
-        voteRepository.save(vote);
-
-        return createVoteResponse(vote);
+        // Validar que el estudiante no haya votado en esta elección
+        if (contractVoteService.hasStudentVoted(election.getId(), student.getId())) {
+            throw new ExcessiveVotesException("El estudiante ya ha votado en esta elección");
+        }
+        TransactionReceipt transaction = contractVoteService.vote(election.getId(), candidate.getId(),
+                student.getId());
+        TransactionRegisterDTO transactionRegister = transactionMapper.toTransactionRegisterDTO(transaction);
+        TransactionResponseDTO response = transactionService.saveTransaction(transactionRegister);
+        VoteEntity vote = voteRepository.save(voteMapper.toVoteEntity(response, student));
+        return voteMapper.voteResponseDTO(vote);
     }
 
-    private VoteResponseDTO createVoteResponse(VoteEntity voteEntity) {
-        VoteResponseDTO voteResponseDTO = new VoteResponseDTO();
-        voteResponseDTO.setVoteTime(LocalDateTime.now());
-        voteResponseDTO.setMessage("El estudiante " + voteEntity.getStudentEntity().getFirstName() +
-                " ha votado por " + voteEntity.getCandidateEntity().getFirstName() +
-                " en la elección");
-        return voteResponseDTO;
-    }
 
-    private List<VoteEntity> filterVotesByStudentIdAndCandidateId(Long studentId, Long candidateId) {
-        return this.voteRepository.findAll().stream().filter(v -> v.getStudentEntity().getId().equals(studentId) && v.getCandidateEntity().getId().equals(candidateId)).toList();
-    }
 
-    private boolean matchVoteByStudentInElection(List<VoteEntity> votes, Long electionId) {
-        return votes.stream().anyMatch(v -> v.getCandidateEntity().getId().equals(electionId));
-    }
 
 }

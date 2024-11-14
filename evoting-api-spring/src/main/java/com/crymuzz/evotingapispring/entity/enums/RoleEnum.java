@@ -11,8 +11,5 @@ public enum RoleEnum {
     ADMIN,
 
     // Rol de estudiante, tiene acceso limitado a funciones relacionadas con la votación.
-    STUDENT,
-
-    // Rol de invitado, generalmente con permisos mínimos o de solo lectura.
-    INVITED
+    STUDENT
 }

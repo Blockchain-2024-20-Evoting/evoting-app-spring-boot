@@ -12,8 +12,13 @@ import java.time.LocalDateTime;
  */
 @Data
 public class VoteResponseDTO {
+
+    private String hashVote;
+
     // Mensaje de confirmación sobre el registro del voto
     private String message;
+
+    private String statusTransaction;
 
     // Hora exacta en que se registró el voto
     private LocalDateTime voteTime;

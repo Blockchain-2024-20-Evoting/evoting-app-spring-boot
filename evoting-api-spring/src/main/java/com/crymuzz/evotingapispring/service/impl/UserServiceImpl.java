@@ -85,7 +85,6 @@ public class UserServiceImpl implements IUserService {
                         loginDTO.getPassword())
                 );
 
-
         // Recuperar información
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
         UserEntity userEntity = userPrincipal.getUserEntity();
