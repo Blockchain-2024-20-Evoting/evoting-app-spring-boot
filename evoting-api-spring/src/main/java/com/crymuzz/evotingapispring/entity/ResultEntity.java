@@ -1,16 +1,15 @@
 package com.crymuzz.evotingapispring.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.validation.constraints.Min;
+import lombok.*;
 
 @Entity
-@Getter
-@Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Getter
+@Setter
+@ToString
 @Table(name = "results")
 public class ResultEntity {
 
@@ -18,11 +17,24 @@ public class ResultEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "candidate_id", nullable = false)
-    private CandidateEntity candidate;
+    private CandidateEntity candidateEntity;
 
-    @Column(length = 100)
-    private Long voteCount;
+    @Column(name = "count_votes", nullable = false)
+    private Long countVotes;
+
+    @Column(nullable = false)
+    private double percentages;
+
+    @Column(nullable = false, name = "is_winner")
+    private boolean isWinner;
+
+    @Column(name = "party_name", nullable = false)
+    private String partyName;
+
+    @Column(name = "election_name", nullable = false)
+    private String electionName;
+
 
 }

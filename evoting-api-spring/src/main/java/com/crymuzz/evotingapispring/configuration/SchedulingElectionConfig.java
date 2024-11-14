@@ -23,7 +23,7 @@ public class SchedulingElectionConfig {
      * Tarea automatizada para el conteo de votos
      */
 
-    @Scheduled(cron = "0 * * * * *", zone = "America/Lima") // Cron definido
+    @Scheduled(cron = "0 * * * * *", zone = "America/Lima")
     public void scheduleElection() {
         electionService.updateAllStatusElection();
     }

@@ -84,14 +84,14 @@ public class ContractVoteServiceImpl implements IContractVoteService {
 
     @Override
     public BigInteger getVotes(Long electionId, Long candidateId) throws IOException {
+        // Crear una función para llamar a getVoteCount en el contrato
         Function function = new Function(
-                "getVotes", // Nombre del método en el contrato
+                "getVoteCount",
                 Arrays.asList(
-                        new Uint256(BigInteger.valueOf(electionId)),  // Argumento: electionId
-                        new Uint256(BigInteger.valueOf(candidateId))  // Argumento: candidateId
+                        new Uint256(BigInteger.valueOf(electionId)),
+                        new Uint256(BigInteger.valueOf(candidateId))
                 ),
-                List.of(new TypeReference<Uint256>() {
-                })
+                List.of(new TypeReference<Uint256>() {})
         );
 
         EthCall response = web3j.ethCall(
@@ -100,14 +100,30 @@ public class ContractVoteServiceImpl implements IContractVoteService {
                 org.web3j.protocol.core.DefaultBlockParameterName.LATEST
         ).send();
 
-        // Procesar la respuesta
-        List<Type> result = FunctionReturnDecoder.decode(response.getResult(), function.getOutputParameters());
+        // Verificar si la respuesta es válida
+        if (response == null) {
+            throw new RuntimeException("No se pudo obtener una respuesta del contrato.");
+        }
+
+        if (response.hasError()) {
+            throw new RuntimeException("Error en la llamada al contrato: " + response.getError().getMessage());
+        }
+
+        // Procesar y decodificar la respuesta del contrato
+        String responseResult = response.getResult();
+        if (responseResult == null || responseResult.isEmpty()) {
+            throw new RuntimeException("Resultado vacío al verificar los votos.");
+        }
+
+        List<Type> result = FunctionReturnDecoder.decode(responseResult, function.getOutputParameters());
         if (!result.isEmpty()) {
             return (BigInteger) result.get(0).getValue();
         } else {
-            throw new RuntimeException("Error al verificar los votos");
+            throw new RuntimeException("El resultado del contrato no contiene votos.");
         }
     }
+
+
 
     @Override
     public Boolean hasStudentVoted(Long electionId, Long studentId) throws IOException {

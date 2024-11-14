@@ -3,99 +3,103 @@ package com.crymuzz.evotingapispring.service.impl;
 import com.crymuzz.evotingapispring.entity.CandidateEntity;
 import com.crymuzz.evotingapispring.entity.ElectionEntity;
 import com.crymuzz.evotingapispring.entity.ResultEntity;
-import com.crymuzz.evotingapispring.entity.VoteEntity;
 import com.crymuzz.evotingapispring.entity.dto.ResultResponseDTO;
 import com.crymuzz.evotingapispring.entity.enums.StateElectionEnum;
 import com.crymuzz.evotingapispring.exception.ResourceNotFoundException;
+import com.crymuzz.evotingapispring.mapper.ResultMapper;
 import com.crymuzz.evotingapispring.repository.CandidateRepository;
-import com.crymuzz.evotingapispring.repository.ElectionRepository;
 import com.crymuzz.evotingapispring.repository.ResultRepository;
-import com.crymuzz.evotingapispring.repository.VoteRepository;
+import com.crymuzz.evotingapispring.service.IContractVoteService;
 import com.crymuzz.evotingapispring.service.IResultService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class ResultServiceImpl implements IResultService {
+
     private final ResultRepository resultRepository;
-    private final ElectionRepository electionRepository;
     private final CandidateRepository candidateRepository;
-    private final CandidateServiceImpl candidateServiceImpl;
-    private final VoteRepository voteRepository;
+    private final IContractVoteService contractService;
+    private final ResultMapper resultMapper;
 
 
     @Override
     @Transactional
     public void countVotes(ElectionEntity electionEntity) {
-        List<ResultEntity> results =
-                voteRepository
-                        .findVoteEntityByCandidateEntityElection(electionEntity)
-                        .stream()
-                        .collect(
-                                Collectors.groupingBy(VoteEntity::getCandidateEntity, Collectors.counting()))
-                        .entrySet()
-                        .stream()
-                        .map(entry -> new ResultEntity(null, entry.getKey(), entry.getValue()))
-                        .toList();
+
+        // Verificar que la elección esté inactiva antes de contar los votos
+        if (electionEntity.getState() != StateElectionEnum.INACTIVE) {
+            throw new ResourceNotFoundException("La elección aún no ha finalizado");
+        }
+
+        // Obtener candidatos y contar votos desde el contrato
+        List<CandidateEntity> candidates = candidateRepository.findCandidateEntityByElectionId(electionEntity.getId());
+        Map<Long, Long> countVotesContract = new HashMap<>();
+
+        // Obtener votos para cada candidato y almacenar en Map con Long en lugar de BigInteger
+        candidates.forEach(candidate -> {
+            try {
+                BigInteger votesBigInt = contractService.getVotes(candidate.getElection().getId(), candidate.getId());
+                long votes = votesBigInt.longValueExact();
+                countVotesContract.put(candidate.getId(), votes);
+            } catch (IOException e) {
+                throw new RuntimeException("Error obteniendo votos para el candidato ID: " + candidate.getId(), e);
+            } catch (ArithmeticException e) {
+                throw new RuntimeException("El número de votos excede el límite de Long para el candidato ID: " + candidate.getId(), e);
+            }
+        });
+
+        // Calcular el total de votos y el máximo para determinar el ganador
+        long totalVotes = countVotesContract.values().stream().mapToLong(Long::longValue).sum();
+        long maxVotes = countVotesContract.values().stream().mapToLong(Long::longValue).max().orElse(0L);
+
+        // Crear lista de resultados para cada candidato
+        List<ResultEntity> results = new ArrayList<>();
+
+        for (CandidateEntity candidate : candidates) {
+            long voteCount = countVotesContract.getOrDefault(candidate.getId(), 0L);
+            boolean isWinner = (voteCount == maxVotes);
+            double percentage = (totalVotes > 0) ? (voteCount * 100.0) / totalVotes : 0.0;
+
+            // Crear ResultEntity para cada candidato
+            ResultEntity result = new ResultEntity(
+                    null,
+                    candidate,
+                    voteCount,
+                    percentage,
+                    isWinner,
+                    candidate.getParty().getName(),
+                    electionEntity.getName()
+            );
+            results.add(result);
+        }
+        // Guardar resultados
         resultRepository.saveAll(results);
     }
 
+
     @Override
-    public Long getVotesCandidate(Long candidateId) {
-        CandidateEntity candidateEntity =
-                candidateRepository.findById(candidateId).orElseThrow(() -> new ResourceNotFoundException("El " +
-                        "candidato no existe"));
-        if (candidateEntity.getElection().getState() != StateElectionEnum.INACTIVE)
-            throw new ResourceNotFoundException("La elección aún no ha finalizado");
-        return this.voteRepository.countVoteEntityByCandidateEntity(candidateEntity);
+    public Long getVotesCandidate(Long candidateId) throws IOException {
+        CandidateEntity candidate =
+                candidateRepository.findById(candidateId).orElseThrow(() -> new ResourceNotFoundException(
+                        "Candidado a" +
+                                " " +
+                                "consultar votos no encontrado"));
+        BigInteger voteCount = contractService.getVotes(candidate.getElection().getId(), candidate.getId());
+        return voteCount.longValueExact();
     }
 
     @Override
     public List<ResultResponseDTO> getResultsByElection(Long electionId) {
-        ElectionEntity election = electionRepository.findById(electionId)
-                .orElseThrow(() -> new ResourceNotFoundException("La elección no existe"));
-
-        // Verificar que la elección esté inactiva
-        if (election.getState() != StateElectionEnum.INACTIVE)
-            throw new ResourceNotFoundException("La elección aún no ha finalizado");
-
-        // Obtener todos los candidatos de la elección
-        List<CandidateEntity> candidates = candidateRepository.findByElection(election);
-
-        // Contar votos por candidato y guardar en un mapa
-        var votesByCandidate = voteRepository.findVoteEntityByCandidateEntityElection(election)
-                .stream()
-                .collect(Collectors.groupingBy(VoteEntity::getCandidateEntity, Collectors.counting()));
-
-        // Calcular el total de votos en la elección
-        long totalVotes = votesByCandidate.values().stream().mapToLong(Long::longValue).sum();
-
-        // Encontrar el número máximo de votos obtenidos
-        long maxVotes = votesByCandidate.values().stream().max(Long::compareTo).orElse(0L);
-
-        // Crear la lista de resultados, incluyendo candidatos sin votos
-        return candidates.stream()
-                .map(candidate -> {
-                    long voteCount = votesByCandidate.getOrDefault(candidate, 0L);
-                    boolean isWinner = voteCount == maxVotes;
-                    double percentage = (totalVotes > 0) ? (voteCount * 100.0) / totalVotes : 0;
-
-                    return ResultResponseDTO.builder()
-                            .firstName(candidate.getFirstName())
-                            .lastName(candidate.getLastName())
-                            .nameElection(candidate.getElection().getName())
-                            .partyElection(candidate.getParty().getName())
-                            .countVotes(voteCount)
-                            .winner(isWinner)
-                            .percentage(percentage)
-                            .build();
-                })
-                .toList();
+        return resultRepository.findResultEntityByCandidateEntityElectionId(electionId).stream().map(resultMapper::toResultResponseDTO).toList();
     }
-
 }

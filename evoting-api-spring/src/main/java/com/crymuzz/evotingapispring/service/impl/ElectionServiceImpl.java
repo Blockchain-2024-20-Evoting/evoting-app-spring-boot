@@ -24,6 +24,7 @@ public class ElectionServiceImpl implements IElectionService {
 
     private final ElectionRepository electionRepository;
     private final ElectionMapper electionMapper;
+    private final ResultServiceImpl resultService;
 
     @Override
     @Transactional
@@ -74,7 +75,7 @@ public class ElectionServiceImpl implements IElectionService {
                     StateElectionEnum newState = calcularNuevoEstado(election.getStartDate(), election.getEndDate());
                     election.setState(newState);
                     if (newState == StateElectionEnum.INACTIVE) {
-//                        resultService.countVotes(election);
+                        resultService.countVotes(election);
                     }
                 })
                 .toList();
