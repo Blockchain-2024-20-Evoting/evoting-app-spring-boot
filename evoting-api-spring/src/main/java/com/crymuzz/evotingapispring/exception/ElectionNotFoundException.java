@@ -6,9 +6,7 @@ public class ElectionNotFoundException extends RuntimeException {
         super(message);
     }
 
-    public ElectionNotFoundException() {
-        super("Election not found");
-    }
+
 
 
 }

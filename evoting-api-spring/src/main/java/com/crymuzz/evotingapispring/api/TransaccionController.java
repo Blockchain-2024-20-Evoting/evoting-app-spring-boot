@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/transactions")
 @Tag(name = "Transacciones", description = "Endpoint para las consultas de las transacciones")
@@ -17,8 +19,15 @@ public class TransaccionController {
     private final ITransactionService transactionService;
 
     @GetMapping("/{hash}")
-    public ResponseEntity<TransactionResponseDTO> transactionResponseDTO(@PathVariable String hash) {
+    public ResponseEntity<TransactionResponseDTO> getTransactionByHash(@PathVariable String hash) {
         TransactionResponseDTO response = transactionService.findTransactionByHash(hash);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
+
+    @GetMapping
+    public ResponseEntity<List<TransactionResponseDTO>> getAllTransactions() {
+        List<TransactionResponseDTO> transactions = transactionService.findAllTransactions();
+        return new ResponseEntity<>(transactions, HttpStatus.OK);
+    }
+
 }

@@ -8,11 +8,37 @@ services:
     ports:
       - "8080:8080"
     environment:
-      DB_URL: jdbc:mysql://evoting_database:3306/db_evoting?createDatabaseIfNotExist=true&serverTimezone=UTC
-      DB_USER_NAME: crymuzz
-      DB_PASSWORD: 1234
-      JWT_SECRET: cff10b0258a363c968d76a7eda9e15a2c2052755d1d3b2cb7edf0d74a86bcc3077bdb71201c77e34a79d6acdf2bc89527b415e4a246edaea50263d0b6ed2c272
-      JWT_VALIDITY_SECONDS: 2592000
+      DB_URL: ${DB_URL}
+      DB_USER_NAME: ${DB_USER_NAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_VALIDITY_SECONDS: ${JWT_VALIDITY_SECONDS}
+      URL_SERVER_OCEAN: ${URL_SERVER_OCEAN}
+      PORT_SERVER_OCEAN: ${PORT_SERVER_OCEAN}
+      CONTRACT_ADDRESS: ${CONTRACT_ADDRESS}
+      PRIVATE_KEY: ${PRIVATE_KEY}
+    restart: always
+    depends_on:
+      evoting_database:
+        condition: service_healthy
+
+  evoting-api-spring-02:
+    container_name: spring-api-container-02
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8080"
+    environment:
+      DB_URL: ${DB_URL}
+      DB_USER_NAME: ${DB_USER_NAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_VALIDITY_SECONDS: ${JWT_VALIDITY_SECONDS}
+      URL_SERVER_OCEAN: ${URL_SERVER_OCEAN}
+      PORT_SERVER_OCEAN: ${PORT_SERVER_OCEAN}
+      CONTRACT_ADDRESS: ${CONTRACT_ADDRESS}
+      PRIVATE_KEY: ${PRIVATE_KEY}
     restart: always
     depends_on:
       evoting_database:
@@ -23,10 +49,11 @@ services:
     ports:
       - "3307:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: 1234
-      MYSQL_DATABASE: db_evoting
-      MYSQL_USER: crymuzz
-      MYSQL_PASSWORD: 1234
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      TZ: "UTC"
     restart: always
     healthcheck:
       test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]

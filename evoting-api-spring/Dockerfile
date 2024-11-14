@@ -1,5 +1,5 @@
 # IMAGEN MODELO
-FROM eclipse-temurin:21.0.5_11-jdk
+FROM eclipse-temurin:21.0.5_11-jre
 
 ARG JAR_FILE=target/evoting-api-spring-0.0.1-SNAPSHOT.jar
 
