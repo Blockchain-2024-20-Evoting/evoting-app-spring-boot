@@ -1,5 +1,7 @@
 package com.crymuzz.evotingapispring.service.impl;
 
+import com.crymuzz.evotingapispring.exception.ErrorResponseContractException;
+import com.crymuzz.evotingapispring.exception.ErrorTransactionException;
 import com.crymuzz.evotingapispring.mapper.TransactionMapper;
 import com.crymuzz.evotingapispring.service.IContractVoteService;
 import lombok.RequiredArgsConstructor;
@@ -39,12 +41,8 @@ public class ContractVoteServiceImpl implements IContractVoteService {
     @Value("${web3j.contract.private-key}")
     private String privateKey;
 
-    public static final BigInteger GAS_PRICE = BigInteger.valueOf(20_000_000_000L); // 20 Gwei
+    public static final BigInteger GAS_PRICE = BigInteger.valueOf(20_000_000_000L);
     public static final BigInteger GAS_LIMIT = BigInteger.valueOf(6_721_975L);
-
-    private final TransactionMapper transactionMapper;
-    private final TransactionServiceImpl transactionService;
-
 
     @Override
     public TransactionReceipt vote(Long electionId, Long candidateId, Long studentId) throws TransactionException, IOException {
@@ -70,7 +68,7 @@ public class ContractVoteServiceImpl implements IContractVoteService {
                 BigInteger.ZERO
         );
         if (ethSendTransaction.hasError()) {
-            throw new RuntimeException("Error sending transaction: " + ethSendTransaction.getError().getMessage());
+            throw new ErrorTransactionException("Error enviando la transacción: " + ethSendTransaction.getError().getMessage());
         }
         String transactionHash = ethSendTransaction.getTransactionHash();
         PollingTransactionReceiptProcessor receiptProcessor = new PollingTransactionReceiptProcessor(
@@ -102,24 +100,23 @@ public class ContractVoteServiceImpl implements IContractVoteService {
 
         // Verificar si la respuesta es válida
         if (response == null) {
-            throw new RuntimeException("No se pudo obtener una respuesta del contrato.");
+            throw new ErrorResponseContractException("No se pudo obtener una respuesta del contrato.");
         }
 
         if (response.hasError()) {
-            throw new RuntimeException("Error en la llamada al contrato: " + response.getError().getMessage());
+            throw new ErrorResponseContractException("Error en la llamada al contrato: " + response.getError().getMessage());
         }
 
-        // Procesar y decodificar la respuesta del contrato
         String responseResult = response.getResult();
         if (responseResult == null || responseResult.isEmpty()) {
-            throw new RuntimeException("Resultado vacío al verificar los votos.");
+            throw new ErrorResponseContractException("Resultado vacío al verificar los votos.");
         }
 
         List<Type> result = FunctionReturnDecoder.decode(responseResult, function.getOutputParameters());
         if (!result.isEmpty()) {
             return (BigInteger) result.get(0).getValue();
         } else {
-            throw new RuntimeException("El resultado del contrato no contiene votos.");
+            throw new ErrorResponseContractException("El resultado del contrato no contiene votos.");
         }
     }
 
@@ -127,26 +124,22 @@ public class ContractVoteServiceImpl implements IContractVoteService {
 
     @Override
     public Boolean hasStudentVoted(Long electionId, Long studentId) throws IOException {
-        // Crear la función que queremos llamar en el contrato
         Function function = new Function(
-                "hasStudentVoted", // Nombre de la función en el contrato
+                "hasStudentVoted",
                 Arrays.asList(
-                        new Uint256(BigInteger.valueOf(electionId)), // Parámetro electionId
-                        new Uint256(BigInteger.valueOf(studentId))   // Parámetro studentId
+                        new Uint256(BigInteger.valueOf(electionId)),
+                        new Uint256(BigInteger.valueOf(studentId))
                 ),
                 List.of(new TypeReference<Bool>() {
-                }) // Tipo de retorno esperado: Bool
+                })
         );
 
-        // Hacer la llamada al contrato
         EthCall response = web3j.ethCall(
                 org.web3j.protocol.core.methods.request.Transaction.createEthCallTransaction(
                         contractAddress, contractAddress, FunctionEncoder.encode(function)),
                 org.web3j.protocol.core.DefaultBlockParameterName.LATEST
         ).send();
-        // Decodificar el resultado de la llamada
         List<Type> result = FunctionReturnDecoder.decode(response.getResult(), function.getOutputParameters());
-        // Verificar que el resultado no esté vacío y devolver el valor booleano
         return (Boolean) result.get(0).getValue();
     }
 

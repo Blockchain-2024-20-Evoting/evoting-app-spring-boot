@@ -13,6 +13,15 @@ public class ResultMapper {
     private final ModelMapper modelMapper;
 
     public ResultResponseDTO toResultResponseDTO(ResultEntity resultEntity) {
-        return modelMapper.map(resultEntity, ResultResponseDTO.class);
+
+        return ResultResponseDTO.builder()
+                .id(resultEntity.getId())
+                .candidateEntity(resultEntity.getCandidateEntity())
+                .countVotes(resultEntity.getCountVotes())
+                .percentages(resultEntity.getPercentages())
+                .isWinner(resultEntity.isWinner())
+                .partyName(resultEntity.getPartyName())
+                .electionName(resultEntity.getElectionName())
+                .build();
     }
 }
