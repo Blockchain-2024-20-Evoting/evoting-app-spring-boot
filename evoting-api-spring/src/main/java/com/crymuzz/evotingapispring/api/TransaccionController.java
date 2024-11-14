@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/transactions")
 @Tag(name = "Transacciones", description = "Endpoint para las consultas de las transacciones")
 @RequiredArgsConstructor
+@CrossOrigin("http://localhost:5173")
 public class TransaccionController {
 
     private final ITransactionService transactionService;

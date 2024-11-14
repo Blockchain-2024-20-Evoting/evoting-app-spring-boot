@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/profile")
 @Tag(name = "Estudiantes", description = "Endpoint para las consultas de los estudiantes")
 @RequiredArgsConstructor
+@CrossOrigin("http://localhost:5173")
 public class StudentController {
 
     private final IUserService userService;

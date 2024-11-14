@@ -29,6 +29,7 @@ import java.math.BigInteger;
 @RequestMapping("/vote")
 @Tag(name = "Votos", description = "Endpoint para los votos de las elecciones")
 @RequiredArgsConstructor
+@CrossOrigin("http://localhost:5173")
 public class VoteController {
 
     private final IVoteService voteService;

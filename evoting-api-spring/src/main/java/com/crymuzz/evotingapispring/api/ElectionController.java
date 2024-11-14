@@ -25,6 +25,7 @@ import java.util.List;
 @RequestMapping("/v1/election")
 @Tag(name = "Elecciones", description = "Endpoint para la gestion de elecciones de las votaciones")
 @RequiredArgsConstructor
+@CrossOrigin("http://localhost:5173")
 public class ElectionController {
 
     // Inyeccion de dependencias para el service eleccion
